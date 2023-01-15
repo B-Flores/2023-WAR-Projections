@@ -73,18 +73,70 @@ age_war_pos <- batting %>%
                             birth_year + 1, birth_year),
          Age = Year - birth_year) %>%
   inner_join(positions, by = "key_fangraphs") %>%
-  select(Age, WAR, POS) %>%
-  distinct()
+  select(Age, WAR, POS, Year) %>%
+  distinct() %>%
+  filter(POS != "P")
 
-ggplot(age_war_pos, aes(Age, WAR)) + geom_point() +
-  facet_wrap(~POS) +
+ggplot(age_war_pos, aes(x = POS)) +
+  geom_histogram(bins = 50, col= "white", stat = "count")
+
+# Filter by position and look at histogram faceted by Year
+
+age_war_pos %>%
+  filter(POS == "OF") %>%
+  ggplot(aes(x = Age)) +
+    geom_histogram(stat = "count") +
+    facet_wrap(~round(Year))
+    
+
+  
+# Career WAR Trajectories by Position (Quadratic Regression)
+ggplot(age_war_pos, aes(Age, WAR)) + 
+  geom_point(aes(color=POS)) +
+#  facet_grid(Age > 30~POS) +
+  facet_wrap(~POS)+
   geom_smooth(method = "lm", se = FALSE, linewidth = 1.5,
-              formula = y ~ poly(x, 2, raw = TRUE)) 
+              formula = y ~ poly(x, 2, raw = TRUE))
 
-summ <- age_war_pos %>%
-  filter(POS != "P", POS != "C") %>%
-  group_by(POS, Age) %>%
-  summarise(Count = n()) 
 
-ggplot(summ, aes(Age, Count)) + geom_point() +
-  facet_wrap(~POS)
+
+
+# model <- lm(WAR~Age + POS, data = age_war_pos)
+# summary(model)
+# anova(model)
+# model
+# 
+# model2 <- lm(WAR~Age + POS + Age:POS, data = age_war_pos)
+# summary(model2)
+# anova(model2)
+# model2
+# 
+# 
+# 
+# 
+# ggplot(age_war_pos, aes(Age, WAR)) +
+#   geom_point(aes(color=POS)) +
+#   geom_abline(aes(intercept = 4.367, slope = -0.059, color = "1B")) +
+#   geom_abline(aes(intercept = 4.367 + model2$coefficients[3], slope = -0.059 + model2$coefficients[8]+ 0.00276, color = "2B")) +
+#   geom_abline(aes(intercept = 4.367 + model2$coefficients[4], slope = -0.059 + model2$coefficients[9], color = "3B")) +
+#   geom_abline(aes(intercept = 4.367 + model2$coefficients[5], slope = -0.059 + model2$coefficients[10], color = "C")) +
+#   geom_abline(aes(intercept = 4.367 + model2$coefficients[6], slope = -0.059 + model2$coefficients[11], color = "OF")) +
+#   geom_abline(aes(intercept = 4.367 + model2$coefficients[7], slope = -0.059 + model2$coefficients[12], color = "SS")) +
+#   facet_wrap(~POS)
+# 
+# ggplot(age_war_pos, aes(Age, WAR)) +
+#   geom_point(aes(color=POS)) +
+# #  facet_grid(Age > 30~POS) +
+#   facet_wrap(~POS)+
+#   geom_smooth(method = "lm", se = FALSE, linewidth = 1.5,
+#               formula = y ~ x, aes(color = POS))
+# 
+# ggplot(age_war_pos, aes(Age, WAR)) +
+#   geom_point(aes(color=POS)) +
+# #  facet_grid(Age > 30~POS) +
+#   facet_wrap(~POS)+
+#   geom_smooth(method = "lm", se = FALSE, linewidth = 1.5,
+#               formula = y ~ poly(x, 2, raw = TRUE)) +
+#   geom_smooth(method = "lm", se = FALSE, linewidth = 1.5,
+#               formula = y ~ x)
+
