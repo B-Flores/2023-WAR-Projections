@@ -1,6 +1,7 @@
 library(tidyverse)
 library(baseballr)
 library(Lahman)
+source("get_chadwick.R") #had to create updeate for chadwick function since it has not been updated in baseballr
 
 #xWOBA is dropped from years 2015-2022 since it isn't included in our data
 
@@ -32,15 +33,17 @@ colnames(batting) <- c("Name","Team","G","PA", "HR", "R", "RBI", "SB", "BB%",
 
 # join with chadwick, retrieve birth month & year to calculate age for season
 batting <- batting %>%
-  inner_join(chadwick_player_lu(), by = "key_fangraphs") %>%
+  inner_join(chadwick_player_lu_updated(), by = "key_fangraphs") %>%
   select(colnames(batting),birth_month, birth_year, key_fangraphs) %>%
   mutate(birthyear = ifelse(birth_month >= 7,
                             birth_year + 1, birth_year),
          Age = Year - birth_year)
 
+
+
 Fielding %>%
   mutate(key_bbref = playerID) %>%
-  left_join(chadwick_player_lu(), by = "key_bbref") %>%
+  left_join(chadwick_player_lu_updated(), by = "key_bbref") %>%
   group_by(key_fangraphs, POS) %>%
   inner_join(batting, by = "key_fangraphs") %>%
   rename(G = G.x) %>%
